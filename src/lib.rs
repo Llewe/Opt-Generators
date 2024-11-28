@@ -28,7 +28,6 @@ impl Qubo {
 }
 
 #[pymodule]
-#[pyo3(name = "generators")]
 fn opt_generators(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Qubo>()?;
 
