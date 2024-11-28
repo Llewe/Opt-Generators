@@ -1,8 +1,9 @@
-use rand::prelude::StdRng;
-use crate::format::Format;
-use serde::{Deserialize, Serialize};
+use pyo3::pyclass;
 use rand::{Rng, SeedableRng};
-use pyo3::{pyclass, pymethods, PyResult};
+use rand::prelude::StdRng;
+use serde::{Deserialize, Serialize};
+use std::string::String;
+use crate::format::Format;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[pyclass]
@@ -11,12 +12,12 @@ pub struct Qubo {
 }
 
 impl Format for Qubo {
-    fn to_string(&self) -> String {
+    fn to_json_str(&self) -> String {
         serde_json::to_string::<Qubo>(&self).unwrap()
     }
 
-    fn from_json() -> Self {
-        todo!()
+    fn from_json_str(json_str: String) -> Self {
+        serde_json::from_str::<Qubo>(&json_str).unwrap()
     }
 
     fn random(size: usize, seed: u64) -> Self {
@@ -55,7 +56,7 @@ mod tests {
             matrix: vec![vec![1.0, 2.0], vec![3.0, 4.0]],
         };
         let expected_json = "{\"matrix\":[[1.0,2.0],[3.0,4.0]]}";
-        assert_eq!(qubo.to_string(), expected_json);
+        assert_eq!(qubo.to_json_str(), expected_json);
     }
 
     #[test]
@@ -77,5 +78,17 @@ mod tests {
                 assert_eq!(qubo.matrix[i][j], qubo.matrix[j][i], "Matrix is not symmetric at position ({}, {})", i, j);
             }
         }
+    }
+
+    #[test]
+    fn test_from_json_str() {
+        let json_str = "{\"matrix\":[[1.0,2.0],[3.0,4.0]]}".to_string();
+
+        let qubo_expected: Qubo = Qubo {
+            matrix: vec![vec![1.0, 2.0], vec![3.0, 4.0]],
+        };
+
+        let qubo: Qubo = Format::from_json_str(json_str);
+        assert_eq!(qubo.matrix, qubo_expected.matrix)
     }
 }
